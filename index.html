@@ -225,6 +225,36 @@
   .flt-row{display:flex;align-items:flex-start;gap:12px;margin-bottom:10px;}
   .flt-row:last-child{margin-bottom:0;}
   .flt-lbl{font-size:.68rem;font-weight:800;letter-spacing:.8px;text-transform:uppercase;color:var(--muted);min-width:70px;padding-top:9px;}
+  /* locker room */
+  .lr-board{display:grid;grid-template-columns:minmax(300px,1fr) minmax(340px,1.4fr);gap:16px;align-items:start;}
+  @media(max-width:900px){.lr-board{grid-template-columns:1fr;}}
+  .lr-players{display:flex;flex-direction:column;gap:9px;max-height:78vh;overflow-y:auto;padding-right:4px;}
+  .lr-pcard{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:11px 14px;}
+  .lr-pcard.hot{outline:3px solid var(--red);outline-offset:-2px;background:var(--red-soft);}
+  .lr-pcard b{font-size:.9rem;display:flex;align-items:center;gap:8px;}
+  .lr-num{background:var(--navy);color:#fff;border-radius:8px;padding:2px 8px;font-size:.75rem;}
+  .lr-pcard small{color:var(--muted);font-size:.72rem;display:block;margin:2px 0 6px;}
+  .lr-chips{display:flex;flex-wrap:wrap;gap:6px;}
+  .lr-chip{display:inline-flex;align-items:center;gap:5px;border:1px solid var(--line);border-radius:8px;padding:3px 7px;font-size:.72rem;font-weight:700;}
+  .lr-chip img{width:22px;height:22px;object-fit:cover;border-radius:5px;}
+  .lr-chip button{border:none;background:none;color:var(--muted);cursor:pointer;font-size:.72rem;padding:0 2px;}
+  .lr-chip button:hover{color:var(--crimson);}
+  .lr-rack-wrap{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);padding:14px;}
+  .lr-rack{display:grid;grid-template-columns:repeat(auto-fill,minmax(105px,1fr));gap:10px;min-height:200px;border-radius:10px;}
+  .lr-rack.hot{outline:3px dashed var(--red);outline-offset:4px;}
+  .lr-tile{position:relative;border:1px solid var(--line);border-radius:10px;overflow:hidden;cursor:grab;touch-action:none;user-select:none;-webkit-user-select:none;background:#F7F8FB;}
+  .lr-tile:active{cursor:grabbing;}
+  .lr-tile img{width:100%;aspect-ratio:1;object-fit:cover;display:block;pointer-events:none;}
+  .lr-tile .lr-tinfo{display:flex;justify-content:space-between;align-items:center;padding:5px 8px;font-size:.8rem;}
+  .lr-tile.taken{opacity:.85;}
+  .lr-tile.taken::after{content:"";position:absolute;inset:0;border:3px solid var(--red);border-radius:10px;pointer-events:none;}
+  .lr-owner{position:absolute;top:6px;left:6px;background:var(--red);color:#fff;font-size:.62rem;font-weight:800;padding:2px 7px;border-radius:10px;}
+  .lr-ghost{position:fixed;z-index:300;width:110px;pointer-events:none;opacity:.92;transform:rotate(3deg);box-shadow:0 14px 34px rgba(13,20,46,.4);}
+  .lr-short-row{display:flex;align-items:center;gap:10px;padding:7px 0;border-bottom:1px solid var(--line);font-size:.82rem;}
+  .lr-short-row:last-child{border-bottom:none;}
+  .lr-short-row img{width:40px;height:40px;object-fit:cover;border-radius:8px;border:1px solid var(--line);}
+  .lr-short-row b{min-width:22px;}
+  .lr-short-row input{width:58px;border:1px solid var(--line);border-radius:8px;padding:6px;font-size:.82rem;}
   /* command center */
   .cc-add{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px;}
   .cc-add input{flex:2;min-width:200px;border:1px solid var(--line);border-radius:10px;padding:12px;font-size:.9rem;outline:none;}
@@ -337,7 +367,7 @@
         <p>San Joaquin Memorial Basketball · Pace · Space · Freedom</p>
       </div>
     </div>
-    <div class="meet"><b>Coaches Meeting — Wed, Aug 12</b>Topic: Offense for the upcoming season · See "Meeting Prep"</div>
+    <div class="meet"><b>SJM Panthers · 2026-27</b>Offense HQ · Film · Stats · Locker Room</div>
   </div>
   <nav>
     <button class="active" data-tab="philosophy">Philosophy</button>
@@ -347,7 +377,7 @@
     <button data-tab="whiteboard">Whiteboard</button>
     <button data-tab="notebook">Notebook ✍︎</button>
     <button data-tab="glossary">Glossary</button>
-    <button data-tab="meeting">Meeting Prep</button>
+    <button data-tab="lockerroom">Locker Room</button>
     <button data-tab="workflow">Workflow</button>
   </nav>
 </header>
@@ -912,29 +942,171 @@ slRender();
   <div class="grid g2" id="glHost"></div>
 </section>
 
-<!-- ============ MEETING PREP ============ -->
-<section class="tab" id="meeting">
-  <h2 class="section-title">Coaches Meeting — Wednesday, Aug 12<small>Working agenda: Offense for the upcoming season. Check items off as we cover them.</small></h2>
-  <div class="grid g2">
-    <div class="card"><h3>Agenda</h3>
-      <label class="check"><input type="checkbox"><span><b>1. Identity (5 min)</b> — Pace, space, freedom. The five pillars: early offense, drags, 5-out, transition, freedom to play.</span></label>
-      <label class="check"><input type="checkbox"><span><b>2. Transition rules (10 min)</b> — Rebound-outlet, wing lanes, rim-run vs. drag read, pitch-ahead priority.</span></label>
-      <label class="check"><input type="checkbox"><span><b>3. Secondary package (10 min)</b> — Drag / "77" / guard-to-guard PnR. When called vs. free-flowed.</span></label>
-      <label class="check"><input type="checkbox"><span><b>4. Halfcourt (10 min)</b> — 5-out motion base + DDM triggers + Through/Zoom/Flare wrinkle package.</span></label>
-      <label class="check"><input type="checkbox"><span><b>5. Teaching plan (10 min)</b> — Install order, practice drills, pace metrics we'll track.</span></label>
-      <label class="check"><input type="checkbox"><span><b>6. Film workflow (5 min)</b> — Hudl &rarr; clips &rarr; this dashboard &rarr; player teaching edits.</span></label>
-    </div>
-    <div class="card"><h3>Discussion Questions for Staff</h3><ul>
-      <li><b>Who is our Nash?</b> Which guard(s) do we trust with pitch-ahead decisions — and what do we run when they sit?</li>
-      <li><b>Who rim-runs?</b> Do we have a true rim-runner, or do we lean drag-heavy with a pop big?</li>
-      <li><b>Pace target:</b> what's our "7 seconds" — shot, paint touch, or side change? How do we measure it in practice?</li>
-      <li><b>Shot profile:</b> are we fully in on rim + corner 3s? What's our rule on early contested 3s?</li>
-      <li><b>Conditioning:</b> can we sustain this tempo for 4 quarters with our rotation depth?</li>
-      <li><b>Install order:</b> transition first, or 5-out spacing habits first?</li>
-    </ul></div>
+<!-- ============ LOCKER ROOM ============ -->
+<section class="tab" id="lockerroom">
+  <h2 class="section-title">Locker Room<small>Roster + uniform command center. Drag a jersey tile onto a player to assign it — with "Match all 3 colors" on, one drag assigns that number in White, Navy, and Black at once. Drag a tile back to the rack (or tap ✕) to unassign. Everything saves automatically.</small></h2>
+
+  <div class="grid g4" id="lrTiles"></div>
+
+  <h2 class="section-title">Roster<small>13 players · tap a shorts size to change it — the shorts tally below updates live</small></h2>
+  <div class="card table-scroll">
+    <table class="stat-table" id="lrRoster"></table>
   </div>
-  <div class="note-tip"><b>Suggested meeting flow:</b> open with the Film Room tab (0:00 philosophy chapter), show the primary-break diagram, then walk the agenda. Take live notes in the Notebook tab with your Pencil while the staff talks.</div>
+
+  <h2 class="section-title">Jersey Assignment Board<small>Rack on the right, players on the left. Grab a jersey photo and drop it on a player.</small></h2>
+  <div style="display:flex;gap:8px;align-items:center;margin-bottom:12px;flex-wrap:wrap">
+    <button class="tool txt on" id="lrMatch" onclick="lrMatchToggle()">🔗 Match all 3 colors: ON</button>
+    <span style="font-size:.75rem;color:var(--muted)">One drag = same number assigned in White, Navy &amp; Black (when free)</span>
+  </div>
+  <div class="lr-board">
+    <div class="lr-players" id="lrPlayers"></div>
+    <div class="lr-rack-wrap">
+      <div class="nb-filters" id="lrRackTabs" style="margin-bottom:10px"></div>
+      <div class="lr-rack" id="lrRack"></div>
+    </div>
+  </div>
+
+  <h2 class="section-title">Shorts Inventory<small>Every player gets shorts in all 3 colors in their size. "Need" comes from the roster's size picks — set what you have on hand and the gap shows instantly.</small></h2>
+  <div class="grid g3" id="lrShorts"></div>
 </section>
+<script>
+// ================= LOCKER ROOM =================
+const LR_IMG = (location.hostname==='vincepieretti.github.io') ? '' : 'https://vincepieretti.github.io/sjm-offense-hq/';
+const LR_PLAYERS = [
+  {id:'p1',  name:'Dominick Olanrewaju', pos:'F', ht:'6\'6"', wt:185, cls:'JR · 2028'},
+  {id:'p2',  name:'Semere Tekeste',      pos:'G', ht:'6\'1"', wt:170, cls:'SR · 2027'},
+  {id:'p3',  name:'Ayden Walters',       pos:'G', ht:'6\'1"', wt:170, cls:'SR · 2027'},
+  {id:'p4',  name:'Ty Schalk',           pos:'G', ht:'6\'3"', wt:175, cls:'SR · 2027'},
+  {id:'p5',  name:'Fischer Galan',       pos:'C', ht:'6\'6"', wt:215, cls:'SR · 2027'},
+  {id:'p6',  name:'Jaxson Silverstrom',  pos:'G', ht:'6\'3"', wt:170, cls:'SR · 2027'},
+  {id:'p7',  name:'Roman Felix',         pos:'F', ht:'6\'9"', wt:185, cls:'SO · 2029'},
+  {id:'p8',  name:'Jaedyn Johnson',      pos:'G', ht:'6\'2"', wt:175, cls:'SO · 2029'},
+  {id:'p9',  name:'Kyler McCallister',   pos:'F', ht:'6\'4"', wt:225, cls:'SR · 2027'},
+  {id:'p10', name:'Hudson Dias-Langdon', pos:'F', ht:'6\'5"', wt:200, cls:'SR · 2027'},
+  {id:'p11', name:'Eddie Sablan',        pos:'C', ht:'6\'5"', wt:240, cls:'JR · 2028'},
+  {id:'p12', name:'Aiden Gordon',        pos:'C', ht:'6\'6"', wt:250, cls:'SR · 2027'},
+  {id:'p13', name:'Donovan McCarthy',    pos:'G', ht:'6\'2"', wt:165, cls:'SO · 2029'}
+];
+const LR_NUMS = [[0,'L'],[1,'M'],[2,'M'],[3,'M'],[5,'M'],[10,'M'],[11,'L'],[12,'M'],[13,'S'],[14,'L'],[21,'M'],[22,'M'],[23,'M'],[24,'M'],[25,'L'],[30,'L'],[35,'XL'],[43,'XL']];
+const LR_COLORS = [['w','White','#fff','#121A38'],['n','Navy','#121A38','#fff'],['b','Black','#111','#fff']];
+const LR_JERSEYS = [];
+LR_COLORS.forEach(([c])=>LR_NUMS.forEach(([num,size])=>LR_JERSEYS.push({jid:c+num, c, num, size})));
+
+let lrAssign={}, lrShortsSize={}, lrShortsHave={}, lrMatch=true, lrRackColor='w';
+try{ lrAssign=JSON.parse(store.get('sjm-lr-assign')||'{}'); }catch(e){ lrAssign={}; }
+try{ lrShortsSize=JSON.parse(store.get('sjm-lr-shorts')||'{}'); }catch(e){ lrShortsSize={}; }
+try{ lrShortsHave=JSON.parse(store.get('sjm-lr-have')||'{}'); }catch(e){ lrShortsHave={}; }
+function lrSave(){ store.set('sjm-lr-assign',JSON.stringify(lrAssign)); store.set('sjm-lr-shorts',JSON.stringify(lrShortsSize)); store.set('sjm-lr-have',JSON.stringify(lrShortsHave)); }
+function lrMatchToggle(){ lrMatch=!lrMatch; const b=document.getElementById('lrMatch'); b.textContent='🔗 Match all 3 colors: '+(lrMatch?'ON':'OFF'); b.classList.toggle('on',lrMatch); }
+function lrPlayerNum(pid){ const j=LR_JERSEYS.find(j=>lrAssign[j.jid]===pid); return j? j.num : null; }
+function lrAssignJersey(jid, pid){
+  const j=LR_JERSEYS.find(x=>x.jid===jid);
+  const targets = lrMatch ? LR_JERSEYS.filter(x=>x.num===j.num) : [j];
+  targets.forEach(t=>{
+    if(pid===null){ delete lrAssign[t.jid]; return; }
+    if(!lrAssign[t.jid] || lrAssign[t.jid]===pid || t.jid===jid) lrAssign[t.jid]=pid;
+  });
+  // one player = one number per color: clear other numbers previously held by this player in same colors
+  if(pid!==null){
+    LR_JERSEYS.forEach(x=>{ if(lrAssign[x.jid]===pid && x.num!==j.num && (lrMatch || x.c===j.c)) delete lrAssign[x.jid]; });
+  }
+  lrSave(); lrRender();
+}
+function lrRender(){
+  const assignedCount=Object.keys(lrAssign).length;
+  document.getElementById('lrTiles').innerHTML=`
+    <div class="stat"><div class="num">${LR_PLAYERS.length}</div><div class="lbl">Players on roster</div><div class="src">SJM Roster · Aug 2026</div></div>
+    <div class="stat"><div class="num">${LR_JERSEYS.length}</div><div class="lbl">Jerseys in inventory — 18 numbers × 3 sets</div><div class="src">Inventory 08-13-2026</div></div>
+    <div class="stat"><div class="num">${assignedCount}</div><div class="lbl">Jerseys assigned · ${LR_JERSEYS.length-assignedCount} on the rack</div><div class="src">live</div></div>
+    <div class="stat"><div class="num">${LR_PLAYERS.filter(p=>lrShortsSize[p.id]).length}/${LR_PLAYERS.length}</div><div class="lbl">Players with shorts size picked</div><div class="src">live</div></div>`;
+
+  // roster table
+  const sizes=['S','M','L','XL'];
+  document.getElementById('lrRoster').innerHTML =
+    '<tr><th>#</th><th>Player</th><th>Pos</th><th>Ht</th><th>Wt</th><th>Class</th><th>Jersey size</th><th>Sets</th><th>Shorts size</th></tr>' +
+    LR_PLAYERS.map(p=>{
+      const num=lrPlayerNum(p.id);
+      const mine=LR_JERSEYS.filter(j=>lrAssign[j.jid]===p.id);
+      const jsize=mine.length? [...new Set(mine.map(j=>j.size))].join('/') : '—';
+      const dots=LR_COLORS.map(([c,label])=>`<span title="${label}" style="display:inline-block;width:11px;height:11px;border-radius:50%;margin-right:3px;border:1.5px solid var(--line);background:${mine.some(j=>j.c===c)?(c==='w'?'#fff':c==='n'?'#121A38':'#111'):'transparent'}"></span>`).join('');
+      const sel=sizes.map(s=>`<button class="chip${lrShortsSize[p.id]===s?' on':''}" style="min-height:30px;padding:4px 10px" onclick="lrShortsSize['${p.id}']==='${s}'?delete lrShortsSize['${p.id}']:lrShortsSize['${p.id}']='${s}';lrSave();lrRender()">${s}</button>`).join('');
+      return `<tr><td><b>${num!==null?'#'+num:'—'}</b></td><td>${p.name}</td><td>${p.pos}</td><td>${p.ht}</td><td>${p.wt}</td><td>${p.cls}</td><td>${jsize}</td><td>${dots}</td><td style="white-space:nowrap">${sel}</td></tr>`;
+    }).join('');
+
+  // player drop cards
+  document.getElementById('lrPlayers').innerHTML = LR_PLAYERS.map(p=>{
+    const mine=LR_JERSEYS.filter(j=>lrAssign[j.jid]===p.id);
+    const num=lrPlayerNum(p.id);
+    return `<div class="lr-pcard" data-pid="${p.id}">
+      <b>${num!==null?`<span class="lr-num">#${num}</span>`:''}${p.name}</b>
+      <small>${p.pos} · ${p.ht} · ${p.cls}</small>
+      <div class="lr-chips">${mine.length? mine.map(j=>`<span class="lr-chip ${j.c}"><img src="${LR_IMG}${j.jid}.jpg" alt="">#${j.num} ${j.size}<button onclick="lrAssignJersey('${j.jid}',null)" title="Unassign">✕</button></span>`).join('') : '<span style="color:var(--muted);font-size:.72rem">drop a jersey here</span>'}</div>
+    </div>`;
+  }).join('');
+
+  // rack
+  const tabs=document.getElementById('lrRackTabs'); tabs.innerHTML='';
+  LR_COLORS.forEach(([c,label])=>{
+    const b=document.createElement('button');
+    const free=LR_JERSEYS.filter(j=>j.c===c && !lrAssign[j.jid]).length;
+    b.className='chip'+(lrRackColor===c?' on':'');
+    b.textContent=`${label} (${free} free)`;
+    b.onclick=()=>{ lrRackColor=c; lrRender(); };
+    tabs.appendChild(b);
+  });
+  document.getElementById('lrRack').innerHTML = LR_JERSEYS.filter(j=>j.c===lrRackColor).map(j=>{
+    const pid=lrAssign[j.jid];
+    const pl=pid? LR_PLAYERS.find(p=>p.id===pid) : null;
+    return `<div class="lr-tile${pl?' taken':''}" data-jid="${j.jid}">
+      <img src="${LR_IMG}${j.jid}.jpg" alt="#${j.num}" draggable="false">
+      <div class="lr-tinfo"><b>#${j.num}</b><span class="badge dur" style="position:static">${j.size}</span></div>
+      ${pl?`<div class="lr-owner">${pl.name.split(' ')[0]} ${pl.name.split(' ').slice(-1)[0][0]}.</div>`:''}
+    </div>`;
+  }).join('');
+  document.querySelectorAll('.lr-tile').forEach(t=>t.addEventListener('pointerdown', e=>lrDragStart(e, t.dataset.jid, t)));
+
+  // shorts
+  document.getElementById('lrShorts').innerHTML = LR_COLORS.map(([c,label])=>{
+    return `<div class="card"><h3>${label} Shorts</h3>${['S','M','L','XL'].map(s=>{
+      const need=LR_PLAYERS.filter(p=>lrShortsSize[p.id]===s).length;
+      const key=c+'-'+s;
+      const have=lrShortsHave[key]??'';
+      const gap=(have!==''&&have!==null)? have-need : null;
+      return `<div class="lr-short-row">
+        <img src="${LR_IMG}${c}shorts-${s.toLowerCase()==='xl'?'xl':s.toLowerCase()}.jpg" alt="">
+        <b>${s}</b><span>need <b>${need}</b></span>
+        <label>have <input type="number" min="0" value="${have}" onchange="lrShortsHave['${key}']=this.value===''?null:+this.value;lrSave();lrRender()"></label>
+        ${gap===null?'':(gap>=0?`<span class="lc-status done">+${gap} spare</span>`:`<span class="lc-status queued" style="background:#FDE3E4;color:var(--crimson)">short ${-gap}</span>`)}
+      </div>`;
+    }).join('')}</div>`;
+  }).join('');
+}
+// drag & drop (pointer-based, touch-friendly)
+let lrGhost=null;
+function lrDragStart(e, jid, tile){
+  e.preventDefault();
+  lrGhost=tile.cloneNode(true); lrGhost.classList.add('lr-ghost');
+  document.body.appendChild(lrGhost);
+  const move=ev=>{ ev.preventDefault(); lrGhost.style.left=(ev.clientX-55)+'px'; lrGhost.style.top=(ev.clientY-70)+'px';
+    const el=document.elementFromPoint(ev.clientX,ev.clientY);
+    document.querySelectorAll('.lr-pcard').forEach(c=>c.classList.toggle('hot', c===el?.closest('.lr-pcard')));
+    document.getElementById('lrRack').classList.toggle('hot', !!el?.closest('.lr-rack'));
+  };
+  const up=ev=>{
+    document.removeEventListener('pointermove',move); document.removeEventListener('pointerup',up);
+    const el=document.elementFromPoint(ev.clientX,ev.clientY);
+    const card=el?.closest('.lr-pcard');
+    document.querySelectorAll('.lr-pcard').forEach(c=>c.classList.remove('hot'));
+    document.getElementById('lrRack').classList.remove('hot');
+    if(lrGhost){ lrGhost.remove(); lrGhost=null; }
+    if(card) lrAssignJersey(jid, card.dataset.pid);
+    else if(el?.closest('.lr-rack')) lrAssignJersey(jid, null);
+  };
+  document.addEventListener('pointermove',move,{passive:false});
+  document.addEventListener('pointerup',up);
+}
+lrRender();
+</script>
 
 <!-- ============ COMMAND CENTER ============ -->
 <section class="tab" id="workflow">
