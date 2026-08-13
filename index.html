@@ -949,11 +949,17 @@ slRender();
 
 <!-- ============ LOCKER ROOM ============ -->
 <section class="tab" id="lockerroom">
-  <h2 class="section-title">Locker Room<small>Roster + uniform command center. Drag a jersey tile onto a player to assign it — with "Match all 3 colors" on, one drag assigns that number in White, Navy, and Black at once. Drag a tile back to the rack (or tap ✕) to unassign. Everything saves automatically.</small></h2>
+  <h2 class="section-title">Locker Room<small>Roster + uniform command center. Drag a jersey tile onto a player to assign it — with "Match all 3 colors" on, one drag assigns that number in White, Navy, and Black at once. Drag a tile back to the rack (or tap ✕) to unassign. <b>Locker Room data syncs across all your devices.</b></small></h2>
 
   <div class="grid g4" id="lrTiles"></div>
 
-  <h2 class="section-title">Roster<small>13 players · tap a shorts size to change it — the shorts tally below updates live</small></h2>
+  <h2 class="section-title">Roster<small>Tap Edit to change names, heights, weights — Save locks it in and syncs everywhere. #, jersey size, and sets fill in automatically.</small></h2>
+  <div style="display:flex;gap:8px;align-items:center;margin-bottom:10px;flex-wrap:wrap">
+    <button class="tool txt" id="lrEditBtn" onclick="lrEditToggle()">✎ Edit Roster</button>
+    <button class="tool txt" id="lrAddBtn" onclick="lrAddPlayer()" style="display:none">＋ Add Player</button>
+    <span class="sp" style="flex:1"></span>
+    <span id="lrSyncPill" class="lc-status queued">⟳ checking sync…</span>
+  </div>
   <div class="card table-scroll">
     <table class="stat-table" id="lrRoster"></table>
   </div>
@@ -977,7 +983,8 @@ slRender();
 <script>
 // ================= LOCKER ROOM =================
 const LR_IMG = (location.hostname==='vincepieretti.github.io') ? '' : 'https://vincepieretti.github.io/sjm-offense-hq/';
-const LR_PLAYERS = [
+const LR_SYNC = 'https://kvdb.io/Rwyb5vZdXT1EifpmpsXkcJ/lockerroom';
+const LR_DEFAULT = [
   {id:'p1',  name:'Dominick Olanrewaju', pos:'F', ht:'6\'6"', wt:185, cls:'JR · 2028'},
   {id:'p2',  name:'Semere Tekeste',      pos:'G', ht:'6\'1"', wt:170, cls:'SR · 2027'},
   {id:'p3',  name:'Ayden Walters',       pos:'G', ht:'6\'1"', wt:170, cls:'SR · 2027'},
@@ -993,15 +1000,58 @@ const LR_PLAYERS = [
   {id:'p13', name:'Donovan McCarthy',    pos:'G', ht:'6\'2"', wt:165, cls:'SO · 2029'}
 ];
 const LR_NUMS = [[0,'L'],[1,'M'],[2,'M'],[3,'M'],[5,'M'],[10,'M'],[11,'L'],[12,'M'],[13,'S'],[14,'L'],[21,'M'],[22,'M'],[23,'M'],[24,'M'],[25,'L'],[30,'L'],[35,'XL'],[43,'XL']];
-const LR_COLORS = [['w','White','#fff','#121A38'],['n','Navy','#121A38','#fff'],['b','Black','#111','#fff']];
+const LR_COLORS = [['w','White'],['n','Navy'],['b','Black']];
 const LR_JERSEYS = [];
 LR_COLORS.forEach(([c])=>LR_NUMS.forEach(([num,size])=>LR_JERSEYS.push({jid:c+num, c, num, size})));
 
-let lrAssign={}, lrShortsSize={}, lrShortsHave={}, lrMatch=true, lrRackColor='w';
-try{ lrAssign=JSON.parse(store.get('sjm-lr-assign')||'{}'); }catch(e){ lrAssign={}; }
-try{ lrShortsSize=JSON.parse(store.get('sjm-lr-shorts')||'{}'); }catch(e){ lrShortsSize={}; }
-try{ lrShortsHave=JSON.parse(store.get('sjm-lr-have')||'{}'); }catch(e){ lrShortsHave={}; }
-function lrSave(){ store.set('sjm-lr-assign',JSON.stringify(lrAssign)); store.set('sjm-lr-shorts',JSON.stringify(lrShortsSize)); store.set('sjm-lr-have',JSON.stringify(lrShortsHave)); }
+let lrRosterData=null, lrAssign={}, lrShortsSize={}, lrShortsHave={}, lrMatch=true, lrRackColor='w', lrEdit=false, lrUpdated=0;
+try{ const s=JSON.parse(store.get('sjm-lr-state')||'null'); if(s){ lrRosterData=s.roster; lrAssign=s.assign||{}; lrShortsSize=s.shorts||{}; lrShortsHave=s.have||{}; lrUpdated=s.updatedAt||0; } }catch(e){}
+if(!lrRosterData) lrRosterData = JSON.parse(JSON.stringify(LR_DEFAULT));
+
+// ---- sync engine ----
+let lrPushTimer=null, lrSyncState='checking';
+function lrPill(state, txt){
+  lrSyncState=state;
+  const p=document.getElementById('lrSyncPill');
+  if(!p) return;
+  p.className='lc-status '+(state==='ok'?'done':'queued');
+  p.textContent=txt;
+}
+function lrPayload(){ return {roster:lrRosterData, assign:lrAssign, shorts:lrShortsSize, have:lrShortsHave, updatedAt:lrUpdated}; }
+function lrSave(push=true){
+  lrUpdated=Date.now();
+  store.set('sjm-lr-state', JSON.stringify(lrPayload()));
+  if(push){
+    lrPill('pend','⟳ saving…');
+    clearTimeout(lrPushTimer);
+    lrPushTimer=setTimeout(lrPush, 1200);
+  }
+}
+async function lrPush(){
+  try{
+    const r=await fetch(LR_SYNC,{method:'PUT',body:JSON.stringify(lrPayload())});
+    if(r.ok) lrPill('ok','✓ synced across devices');
+    else if(r.status===403) lrPill('pend','saved here — activate sync: verify the kvdb.io email');
+    else lrPill('pend','saved on this device (sync retrying)');
+  }catch(e){ lrPill('pend','saved on this device (offline)'); }
+}
+async function lrPull(){
+  try{
+    const r=await fetch(LR_SYNC+'?t='+Date.now());
+    if(r.ok){
+      const remote=await r.json();
+      if(remote && remote.updatedAt > lrUpdated){
+        lrRosterData=remote.roster||lrRosterData; lrAssign=remote.assign||{}; lrShortsSize=remote.shorts||{}; lrShortsHave=remote.have||{}; lrUpdated=remote.updatedAt;
+        store.set('sjm-lr-state', JSON.stringify(lrPayload()));
+        lrRender();
+      } else if(lrUpdated > (remote?remote.updatedAt:0)) { lrPush(); return; }
+      lrPill('ok','✓ synced across devices');
+    } else if(r.status===404){ if(lrUpdated) lrPush(); else lrPill('ok','✓ sync ready'); }
+    else if(r.status===403) lrPill('pend','saved here — activate sync: verify the kvdb.io email');
+    else lrPill('pend','saved on this device');
+  }catch(e){ lrPill('pend','saved on this device (offline)'); }
+}
+
 function lrMatchToggle(){ lrMatch=!lrMatch; const b=document.getElementById('lrMatch'); b.textContent='🔗 Match all 3 colors: '+(lrMatch?'ON':'OFF'); b.classList.toggle('on',lrMatch); }
 function lrPlayerNum(pid){ const j=LR_JERSEYS.find(j=>lrAssign[j.jid]===pid); return j? j.num : null; }
 function lrAssignJersey(jid, pid){
@@ -1011,35 +1061,66 @@ function lrAssignJersey(jid, pid){
     if(pid===null){ delete lrAssign[t.jid]; return; }
     if(!lrAssign[t.jid] || lrAssign[t.jid]===pid || t.jid===jid) lrAssign[t.jid]=pid;
   });
-  // one player = one number per color: clear other numbers previously held by this player in same colors
   if(pid!==null){
     LR_JERSEYS.forEach(x=>{ if(lrAssign[x.jid]===pid && x.num!==j.num && (lrMatch || x.c===j.c)) delete lrAssign[x.jid]; });
   }
   lrSave(); lrRender();
 }
+function lrCommitInputs(){
+  document.querySelectorAll('#lrRoster tr[data-pid]').forEach(tr=>{
+    const p=lrRosterData.find(x=>x.id===tr.dataset.pid);
+    if(!p) return;
+    const g=n=>tr.querySelector(`input[data-f="${n}"]`)?.value.trim();
+    if(g('name')!==undefined){ p.name=g('name')||p.name; p.pos=g('pos')||p.pos; p.ht=g('ht')||p.ht; p.wt=parseInt(g('wt'))||p.wt; p.cls=g('cls')||p.cls; }
+  });
+}
+function lrEditToggle(){
+  if(lrEdit){ lrCommitInputs(); lrEdit=false; lrSave(); }
+  else { lrEdit=true; }
+  document.getElementById('lrEditBtn').textContent = lrEdit? '💾 Save & Lock' : '✎ Edit Roster';
+  document.getElementById('lrEditBtn').classList.toggle('on', lrEdit);
+  document.getElementById('lrAddBtn').style.display = lrEdit? 'inline-flex':'none';
+  lrRender();
+}
+function lrAddPlayer(){
+  lrCommitInputs();
+  lrRosterData.push({id:'p'+Date.now(), name:'New Player', pos:'G', ht:'6\'0"', wt:170, cls:'JR · 2028'});
+  lrRender();
+}
+function lrRemovePlayer(pid){
+  if(!confirm('Remove this player from the roster?')) return;
+  lrCommitInputs();
+  lrRosterData=lrRosterData.filter(p=>p.id!==pid);
+  LR_JERSEYS.forEach(j=>{ if(lrAssign[j.jid]===pid) delete lrAssign[j.jid]; });
+  delete lrShortsSize[pid];
+  lrRender();
+}
 function lrRender(){
   const assignedCount=Object.keys(lrAssign).length;
   document.getElementById('lrTiles').innerHTML=`
-    <div class="stat"><div class="num">${LR_PLAYERS.length}</div><div class="lbl">Players on roster</div><div class="src">SJM Roster · Aug 2026</div></div>
+    <div class="stat"><div class="num">${lrRosterData.length}</div><div class="lbl">Players on roster</div><div class="src">SJM Roster · Aug 2026</div></div>
     <div class="stat"><div class="num">${LR_JERSEYS.length}</div><div class="lbl">Jerseys in inventory — 18 numbers × 3 sets</div><div class="src">Inventory 08-13-2026</div></div>
     <div class="stat"><div class="num">${assignedCount}</div><div class="lbl">Jerseys assigned · ${LR_JERSEYS.length-assignedCount} on the rack</div><div class="src">live</div></div>
-    <div class="stat"><div class="num">${LR_PLAYERS.filter(p=>lrShortsSize[p.id]).length}/${LR_PLAYERS.length}</div><div class="lbl">Players with shorts size picked</div><div class="src">live</div></div>`;
+    <div class="stat"><div class="num">${lrRosterData.filter(p=>lrShortsSize[p.id]).length}/${lrRosterData.length}</div><div class="lbl">Players with shorts size picked</div><div class="src">live</div></div>`;
 
-  // roster table
   const sizes=['S','M','L','XL'];
   document.getElementById('lrRoster').innerHTML =
-    '<tr><th>#</th><th>Player</th><th>Pos</th><th>Ht</th><th>Wt</th><th>Class</th><th>Jersey size</th><th>Sets</th><th>Shorts size</th></tr>' +
-    LR_PLAYERS.map(p=>{
+    `<tr><th>#</th><th>Player</th><th>Pos</th><th>Ht</th><th>Wt</th><th>Class</th><th>Jersey size</th><th>Sets</th><th>Shorts size</th>${lrEdit?'<th></th>':''}</tr>` +
+    lrRosterData.map(p=>{
       const num=lrPlayerNum(p.id);
       const mine=LR_JERSEYS.filter(j=>lrAssign[j.jid]===p.id);
       const jsize=mine.length? [...new Set(mine.map(j=>j.size))].join('/') : '—';
-      const dots=LR_COLORS.map(([c,label])=>`<span title="${label}" style="display:inline-block;width:11px;height:11px;border-radius:50%;margin-right:3px;border:1.5px solid var(--line);background:${mine.some(j=>j.c===c)?(c==='w'?'#fff':c==='n'?'#121A38':'#111'):'transparent'}"></span>`).join('');
+      const dots=LR_COLORS.map(([c,label])=>`<span title="${label}${mine.some(j=>j.c===c)?' ✓':''}" style="display:inline-block;width:11px;height:11px;border-radius:50%;margin-right:3px;border:1.5px solid ${mine.some(j=>j.c===c)?'var(--red)':'var(--line)'};background:${mine.some(j=>j.c===c)?'var(--red)':'transparent'}"></span>`).join('');
       const sel=sizes.map(s=>`<button class="chip${lrShortsSize[p.id]===s?' on':''}" style="min-height:30px;padding:4px 10px" onclick="lrShortsSize['${p.id}']==='${s}'?delete lrShortsSize['${p.id}']:lrShortsSize['${p.id}']='${s}';lrSave();lrRender()">${s}</button>`).join('');
-      return `<tr><td><b>${num!==null?'#'+num:'—'}</b></td><td>${p.name}</td><td>${p.pos}</td><td>${p.ht}</td><td>${p.wt}</td><td>${p.cls}</td><td>${jsize}</td><td>${dots}</td><td style="white-space:nowrap">${sel}</td></tr>`;
+      const cell=(f,v,w)=> lrEdit? `<input data-f="${f}" value="${String(v).replace(/"/g,'&quot;')}" style="width:${w};border:1px solid var(--line);border-radius:8px;padding:7px 8px;font-size:.82rem">` : v;
+      return `<tr data-pid="${p.id}"><td><b>${num!==null?'#'+num:'—'}</b></td>
+        <td>${cell('name',p.name,'150px')}</td><td>${cell('pos',p.pos,'42px')}</td><td>${cell('ht',p.ht,'54px')}</td>
+        <td>${cell('wt',p.wt,'52px')}</td><td>${cell('cls',p.cls,'86px')}</td>
+        <td>${jsize}</td><td>${dots}</td><td style="white-space:nowrap">${sel}</td>
+        ${lrEdit?`<td><button class="tool txt danger" style="min-height:32px;padding:4px 8px" onclick="lrRemovePlayer('${p.id}')">✕</button></td>`:''}</tr>`;
     }).join('');
 
-  // player drop cards
-  document.getElementById('lrPlayers').innerHTML = LR_PLAYERS.map(p=>{
+  document.getElementById('lrPlayers').innerHTML = lrRosterData.map(p=>{
     const mine=LR_JERSEYS.filter(j=>lrAssign[j.jid]===p.id);
     const num=lrPlayerNum(p.id);
     return `<div class="lr-pcard" data-pid="${p.id}">
@@ -1049,7 +1130,6 @@ function lrRender(){
     </div>`;
   }).join('');
 
-  // rack
   const tabs=document.getElementById('lrRackTabs'); tabs.innerHTML='';
   LR_COLORS.forEach(([c,label])=>{
     const b=document.createElement('button');
@@ -1061,19 +1141,18 @@ function lrRender(){
   });
   document.getElementById('lrRack').innerHTML = LR_JERSEYS.filter(j=>j.c===lrRackColor).map(j=>{
     const pid=lrAssign[j.jid];
-    const pl=pid? LR_PLAYERS.find(p=>p.id===pid) : null;
+    const pl=pid? lrRosterData.find(p=>p.id===pid) : null;
     return `<div class="lr-tile${pl?' taken':''}" data-jid="${j.jid}">
       <img src="${LR_IMG}${j.jid}.jpg" alt="#${j.num}" draggable="false">
       <div class="lr-tinfo"><b>#${j.num}</b><span class="badge dur" style="position:static">${j.size}</span></div>
-      ${pl?`<div class="lr-owner">${pl.name.split(' ')[0]} ${pl.name.split(' ').slice(-1)[0][0]}.</div>`:''}
+      ${pl?`<div class="lr-owner">${pl.name.split(' ')[0]} ${(pl.name.split(' ').slice(-1)[0][0]||'')}.</div>`:''}
     </div>`;
   }).join('');
   document.querySelectorAll('.lr-tile').forEach(t=>t.addEventListener('pointerdown', e=>lrDragStart(e, t.dataset.jid, t)));
 
-  // shorts
   document.getElementById('lrShorts').innerHTML = LR_COLORS.map(([c,label])=>{
     return `<div class="card"><h3>${label} Shorts</h3>${['S','M','L','XL'].map(s=>{
-      const need=LR_PLAYERS.filter(p=>lrShortsSize[p.id]===s).length;
+      const need=lrRosterData.filter(p=>lrShortsSize[p.id]===s).length;
       const key=c+'-'+s;
       const have=lrShortsHave[key]??'';
       const gap=(have!==''&&have!==null)? have-need : null;
@@ -1086,9 +1165,9 @@ function lrRender(){
     }).join('')}</div>`;
   }).join('');
 }
-// drag & drop (pointer-based, touch-friendly)
 let lrGhost=null;
 function lrDragStart(e, jid, tile){
+  if(lrEdit) return;
   e.preventDefault();
   lrGhost=tile.cloneNode(true); lrGhost.classList.add('lr-ghost');
   document.body.appendChild(lrGhost);
@@ -1111,6 +1190,8 @@ function lrDragStart(e, jid, tile){
   document.addEventListener('pointerup',up);
 }
 lrRender();
+lrPull();
+document.querySelector('nav button[data-tab="lockerroom"]')?.addEventListener('click', ()=>setTimeout(lrPull, 300));
 </script>
 
 <!-- ============ COMMAND CENTER ============ -->
